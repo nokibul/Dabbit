@@ -2,37 +2,43 @@ package main
 
 import (
 	"context"
-	errors "dabbit/helpers"
 	"fmt"
+	"log"
 
 	fiber "github.com/gofiber/fiber/v2"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+func FailOnError(err error, msg string) {
+	if err != nil {
+		log.Panicf("%s: %s", msg, err)
+	}
+}
+
 func main() {
 	// TODO: connect to rabbitmq
 	rabbitConnection, conectionOpenError := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	errors.FailOnError(conectionOpenError, "Failed to connect to RabbitMQ")
+	FailOnError(conectionOpenError, "Failed to connect to RabbitMQ")
 
 	defer rabbitConnection.Close()
 	fmt.Println("Connected to RabbitMQ")
 
 	// TODO: open a channel
 	channel, channelOpenError := rabbitConnection.Channel()
-	errors.FailOnError(channelOpenError, "Failed to open a channel")
+	FailOnError(channelOpenError, "Failed to open a channel")
 	defer channel.Close()
 	fmt.Println("Opened a channel")
 
 	// TODO: create a queue
 	queue, err := channel.QueueDeclare(
-		"first_api", // name
-		true,        // durable
-		false,       // auto delete
-		false,       // exclusive = can only be used by creator network
-		false,       // no-wait,
-		nil,         // extra arguments
+		"first_api",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
-	errors.FailOnError(err, "Failed to declare a queue")
+	FailOnError(err, "Failed to declare a queue")
 
 	// for undeliverable messages that are returned by the server
 	channel.NotifyReturn(make(chan amqp.Return))
@@ -59,14 +65,14 @@ func main() {
 			false,
 			messageObj,
 		)
-		errors.FailOnError(err, "Failed to publish a message")
+		FailOnError(err, "Failed to publish a message")
 
 		fmt.Println("Message sent to: " + queue.Name)
 		return c.SendString("Message sent to: " + queue.Name)
 	})
 
 	serverStartError := app.Listen(":3000")
-	errors.FailOnError(serverStartError, "Failed to listen")
+	FailOnError(serverStartError, "Failed to listen")
 
 }
 

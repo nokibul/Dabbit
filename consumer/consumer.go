@@ -1,37 +1,39 @@
 package main
 
 import (
-	errors "dabbit/helpers"
+	"fmt"
 	"log"
-	"os"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func main() {
-	// Define RabbitMQ server URL.
-	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+func FailOnError(err error, msg string) {
+	if err != nil {
+		log.Panicf("%s: %s", msg, err)
+	}
+}
 
-	// Create a new RabbitMQ connection.
-	connectRabbitMQ, conectionOpenError := amqp.Dial(amqpServerURL)
-	errors.FailOnError(conectionOpenError, "Failed to connect to RabbitMQ")
-	log.Println("Successfully connected to RabbitMQ")
+func main() {
+	connectRabbitMQ, conectionOpenError := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	FailOnError(conectionOpenError, "Failed to connect to RabbitMQ")
+
 	defer connectRabbitMQ.Close()
+	fmt.Println("Connected to RabbitMQ")
 
 	channelRabbitMQ, channelConnectError := connectRabbitMQ.Channel()
-	errors.FailOnError(channelConnectError, "Failed to connect to RabbitMQ")
+	FailOnError(channelConnectError, "Failed to connect to RabbitMQ")
 	defer channelRabbitMQ.Close()
 
 	messages, consumeMessageError := channelRabbitMQ.Consume(
-		"QueueService1", // queue name
-		"",              // consumer
-		true,            // auto-ack
-		false,           // exclusive
-		false,           // no local
-		false,           // no wait
-		nil,             // arguments
+		"first_api", // queue name
+		"",          // consumer
+		true,        // auto-ack
+		false,       // exclusive
+		false,       // no local
+		false,       // no wait
+		nil,         // arguments
 	)
-	errors.FailOnError(consumeMessageError, "Failed to connect to RabbitMQ")
+	FailOnError(consumeMessageError, "Failed to connect to RabbitMQ")
 
 	log.Println("Waiting for messages")
 

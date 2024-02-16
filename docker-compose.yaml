@@ -23,8 +23,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-sender
-    environment:
-      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+    # environment:
+    #   AMQP_SERVER_URL: amqp://guest:guest@localhost:5672/
     restart: always
     networks:
       - dev-network
@@ -36,8 +36,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-consumer
-    environment:
-      AMQP_SERVER_URL: amqp://guest:guest@message-broker:5672/
+    # environment:
+    #   AMQP_SERVER_URL: amqp://guest:guest@localhost:5672/
     restart: always
     networks:
       - dev-network
