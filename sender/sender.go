@@ -69,3 +69,5 @@ func main() {
 	errors.FailOnError(serverStartError, "Failed to listen")
 
 }
+
+//TODO: mock failed messages and handle that
